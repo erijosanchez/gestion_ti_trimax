@@ -18,18 +18,22 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans text-gray-900 antialiased">
-    <div class="flex flex-col sm:justify-center items-center bg-gray-100 dark:bg-gray-900 pt-6 sm:pt-0 min-h-screen">
-        <div>
-            <a href="/">
-                <x-application-logo class="fill-current w-20 h-20 text-gray-500" />
-            </a>
-        </div>
-
-        <div
-            class="bg-white dark:bg-gray-800 shadow-md mt-6 px-6 py-4 sm:rounded-lg w-full sm:max-w-md overflow-hidden">
-            {{ $slot }}
-        </div>
+<body>
+    <img src="{{ asset('assets/images/blob.svg') }}" class="blob" />
+    <div class="orbit"></div>
+    <div class="login">
+        <img src="{{ asset('assets/images/657557.png') }}" alt="Logo" />
+        <h2>Bienvenido Trimax!</h2>
+        <h3>Sistema de gestion</h3>
+        @if (session('status'))
+            <div style="color: green; text-align: center; margin-bottom: 10px;">
+                {{ session('status') }}
+            </div>
+        @endif
+        {{ $slot }}
+        @if (Route::has('password.request'))
+            <a href="{{ route('password.request') }}">Olvidaste tu contraseña?</a>
+        @endif
     </div>
 </body>
 
