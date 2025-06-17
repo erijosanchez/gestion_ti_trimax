@@ -18,4 +18,19 @@ class Empresa extends Model
         'email',
         'estado',
     ];
+
+    protected $casts = [
+        'fecha_creacion' => 'datetime',
+        'fecha_modificacion' => 'datetime',
+    ];
+
+    public function sedes()
+    {
+        return $this->hasMany(Sede::class, 'id_empresa');
+    }
+
+    public function scopeActivas($query)
+    {
+        return $query->where('estado', 'activo');
+    }
 }
