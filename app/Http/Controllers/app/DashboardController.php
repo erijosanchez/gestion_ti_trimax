@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Equipo;
 use App\Models\Ticket;
 use App\Models\AsignacionEquipo;
-use App\Models\User;
+use App\Models\Usuarios;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -37,7 +37,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
         
-        $totalUsuarios = User::where('estado', 'activo')->count();
+        $totalUsuarios = Usuarios::where('estado', 'activo')->count();
 
         return view('dashboard', compact(
             'totalEquipos', 'equiposOperativos', 'equiposAsignados', 'equiposDisponibles',
