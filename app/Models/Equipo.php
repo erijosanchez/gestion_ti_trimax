@@ -9,6 +9,7 @@ class Equipo extends Model
 {
     use HasFactory;
 
+    protected $table = 'equipos';
     protected $primaryKey = 'id_equipo';
 
     protected $fillable = [
@@ -27,7 +28,7 @@ class Equipo extends Model
         'observaciones',
         'estado_fisico',
         'estado_funcional',
-        'ubicacion_fisica',
+        'ubicacion_fisica'
     ];
 
     protected $casts = [
@@ -35,9 +36,9 @@ class Equipo extends Model
         'fecha_garantia_inicio' => 'date',
         'fecha_garantia_fin' => 'date',
         'costo_adquisicion' => 'decimal:2',
-        'especificaciones_adicionales' => 'json',
+        'especificaciones_adicionales' => 'array',
         'fecha_creacion' => 'datetime',
-        'fecha_modificacion' => 'datetime',
+        'fecha_modificacion' => 'datetime'
     ];
 
     // Relaciones
@@ -71,25 +72,22 @@ class Equipo extends Model
         return $this->hasMany(MovimientoInventario::class, 'id_equipo');
     }
 
-    // Scopes
-    public function scopeOperativos($query)
-    {
-        return $query->where('estado_funcional', 'operativo');
-    }
-
-    public function scopeDisponibles($query)
-    {
-        return $query->whereDoesntHave('asignacionActiva');
-    }
-
     // Accessors
-    public function getEstaAsignadoAttribute()
+    public function getEstaEnGarantiaAttribute()
     {
-        return $this->asignacionActiva()->exists();
+        return $this->fecha_garantia_fin && $this->fecha_garantia_fin->isFuture();
     }
 
-    public function getGarantiaVigentAttribute()
+    public function getValorDepreciadoAttribute()
     {
-        return $this->fecha_garantia_fin >= now();
+        if (!$this->costo_adquisicion || !$this->fecha_compra) {
+            return 0;
+        }
+
+        $antiguedad = $this->fecha_compra->diffInYears(now());
+        $depreciacion = ($this->costo_adquisicion / $this->vida_util_anos) * $antiguedad;
+        
+        return max(0, $this->costo_adquisicion - $depreciacion);
     }
+
 }

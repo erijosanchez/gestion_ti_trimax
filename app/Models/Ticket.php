@@ -9,6 +9,7 @@ class Ticket extends Model
 {
     use HasFactory;
 
+    protected $table = 'tickets';
     protected $primaryKey = 'id_ticket';
 
     protected $fillable = [
@@ -33,7 +34,7 @@ class Ticket extends Model
         'causa_raiz',
         'costo_reparacion',
         'requiere_compra',
-        'observaciones_internas',
+        'observaciones_internas'
     ];
 
     protected $casts = [
@@ -43,26 +44,21 @@ class Ticket extends Model
         'fecha_resolucion' => 'datetime',
         'fecha_cierre' => 'datetime',
         'costo_reparacion' => 'decimal:2',
-        'requiere_compra' => 'boolean',
+        'requiere_compra' => 'boolean'
     ];
 
     // Relaciones
-    public function solicitante()
+    public function usuarioSolicitante()
     {
-        return $this->belongsTo(Usuarios::class, 'id_usuario_solicitante', 'id_usuario');
+        return $this->belongsTo(Usuarios::class, 'id_usuario_solicitante');
     }
 
-    public function tecnico()
-    {
-        return $this->belongsTo(Usuarios::class, 'id_tecnico_asignado', 'id_usuario');
-    }
-
-    public function categoria()
+    public function categoriaTicket()
     {
         return $this->belongsTo(CategoriaTicket::class, 'id_categoria_ticket');
     }
 
-    public function estado()
+    public function estadoTicket()
     {
         return $this->belongsTo(EstadoTicket::class, 'id_estado_ticket');
     }
@@ -72,37 +68,51 @@ class Ticket extends Model
         return $this->belongsTo(Equipo::class, 'id_equipo');
     }
 
+    public function tecnicoAsignado()
+    {
+        return $this->belongsTo(Usuarios::class, 'id_tecnico_asignado');
+    }
+
     public function historial()
     {
         return $this->hasMany(HistorialTicket::class, 'id_ticket');
     }
 
-    // Scopes
-    public function scopeAbiertos($query)
-    {
-        return $query->whereHas('estado', function($q) {
-            $q->where('es_estado_final', false);
-        });
-    }
-
-    public function scopePorPrioridad($query, $prioridad)
-    {
-        return $query->where('prioridad', $prioridad);
-    }
-
-    public function scopeAsignadosA($query, $userId)
-    {
-        return $query->where('id_tecnico_asignado', $userId);
-    }
-
     // Accessors
-    public function getEstaAbiertoAttribute()
+    public function getEstaVencidoAttribute()
     {
-        return !$this->estado->es_estado_final;
+        if (!$this->categoriaTicket) return false;
+
+        $slaHoras = $this->categoriaTicket->sla_horas;
+        $fechaLimite = $this->fecha_creacion->addHours($slaHoras);
+
+        return now()->isAfter($fechaLimite) && !$this->estadoTicket->es_estado_final;
     }
 
-    public function getTiempoTranscurridoAttribute()
+    public function getTiempoRestanteSlaAttribute()
     {
-        return $this->fecha_creacion->diffInMinutes(now());
+        if (!$this->categoriaTicket) return null;
+
+        $slaHoras = $this->categoriaTicket->sla_horas;
+        $fechaLimite = $this->fecha_creacion->addHours($slaHoras);
+
+        return $fechaLimite->diffForHumans();
+    }
+
+    // Generar número de ticket automáticamente
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($ticket) {
+            if (!$ticket->numero_ticket) {
+                $ticket->numero_ticket = 'TK-' . date('Y') . '-' . str_pad(
+                    static::whereYear('fecha_creacion', date('Y'))->count() + 1,
+                    6,
+                    '0',
+                    STR_PAD_LEFT
+                );
+            }
+        });
     }
 }

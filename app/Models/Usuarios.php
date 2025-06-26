@@ -4,12 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 class Usuarios extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory;
 
     protected $table = 'usuarios';
     protected $primaryKey = 'id_usuario';
@@ -23,23 +21,21 @@ class Usuarios extends Authenticatable
         'email',
         'telefono',
         'username',
-        'password',
+        'password_hash',
         'cargo',
         'fecha_ingreso',
-        'estado',
+        'estado'
     ];
 
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password_hash'
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
         'fecha_ingreso' => 'date',
         'ultimo_acceso' => 'datetime',
         'fecha_creacion' => 'datetime',
-        'fecha_modificacion' => 'datetime',
+        'fecha_modificacion' => 'datetime'
     ];
 
     // Relaciones
@@ -53,9 +49,14 @@ class Usuarios extends Authenticatable
         return $this->belongsTo(Rol::class, 'id_rol');
     }
 
-    public function asignaciones()
+    public function asignacionesRecibidas()
     {
         return $this->hasMany(AsignacionEquipo::class, 'id_usuario_asignado');
+    }
+
+    public function asignacionesRealizadas()
+    {
+        return $this->hasMany(AsignacionEquipo::class, 'id_usuario_asigna');
     }
 
     public function ticketsCreados()
@@ -72,11 +73,5 @@ class Usuarios extends Authenticatable
     public function getNombreCompletoAttribute()
     {
         return $this->nombres . ' ' . $this->apellidos;
-    }
-
-    // Scope para usuarios activos
-    public function scopeActivos($query)
-    {
-        return $query->where('estado', 'activo');
     }
 }
