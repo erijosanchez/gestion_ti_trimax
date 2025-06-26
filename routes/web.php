@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\app\DashboardController;
+use App\Http\Controllers\app\EquipoController;
+use App\Http\Controllers\app\TicketController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -38,6 +40,8 @@ Route::middleware('guest')->group(function () {
 })->middleware(['auth', 'verified'])->name('dashboard'); */
 
 Route::get('/trimax/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('trimax/equipos', [EquipoController::class, 'index'])->name('equipos.index');
+Route::get('trimax/tickets', [TicketController::class, 'index'])->name('tickets.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
